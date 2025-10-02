@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>FITOBER Activity Logger</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #111;
+      --card: #222;
+      --accent: #fff;
+      --gray: #ccc;
+      --btn-bg: #333;
+      --btn-hover: #fff;
+      --btn-color: #fff;
+      --btn-hover-color: #111;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: var(--bg);
+      color: var(--accent);
+      min-height: 100vh;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      background: var(--card);
+      max-width: 400px;
+      margin: 32px auto;
+      border-radius: 18px;
+      box-shadow: 0 4px 32px rgba(0,0,0,0.28);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    h1 {
+      font-size: 1.4em;
+      margin-bottom: 3px;
+      text-align: center;
+      letter-spacing: .04em;
+    }
+    .profile {
+      margin-bottom: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    .field {
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+    label {
+      font-size: 0.99em;
+      margin-bottom: 2px;
+      color: var(--gray);
+    }
+    select,
+    input[type="number"] {
+      width: 100%;
+      padding: 7px;
+      background: #181818;
+      border-radius: 6px;
+      border: none;
+      color: var(--accent);
+      font-size: 1em;
+      margin-bottom: 2px;
+      outline: none;
+    }
+    .quick-buttons {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+    .quick-btn {
+      background: var(--btn-bg);
+      color: var(--btn-color);
+      border: none;
+      border-radius: 6px;
+      font-size: 1em;
+      padding: 8px 13px;
+      cursor: pointer;
+      transition: background .18s, color .18s;
+    }
+    .quick-btn:hover {
+      background: var(--btn-hover);
+      color: var(--btn-hover-color);
+      border: 1px solid #fff;
+    }
+    .button {
+      width: 100%;
+      background: var(--btn-bg);
+      color: var(--btn-color);
+      border: none;
+      padding: 13px;
+      border-radius: 8px;
+      font-size: 1.09em;
+      cursor: pointer;
+      margin-top: 6px;
+      transition: background .18s, color .18s;
+    }
+    .button:hover {
+      background: var(--btn-hover);
+      color: var(--btn-hover-color);
+      border: 1px solid #fff;
+    }
+    .recent, .leaderboard {
+      background: #181818;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 0.97em;
+      margin-bottom: 8px;
+    }
+    .recent h2, .leaderboard h2 { font-size: 1.05em; margin-top: 0; }
+    .recent-log, .leaderboard-list { margin: 0; padding-left: 18px;}
+    .credit { margin-top: 18px; text-align: center; font-size: 0.92em; opacity: 0.6;}
+    .credit a { color: #fff; text-decoration: underline; }
+    @media (max-width: 500px) {
+      .container {
+        max-width: 99vw;
+        margin: 3vw;
+        padding: 4vw;
+      }
+      .quick-btn { font-size: .97em; padding: 7px 7px;}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>FITOBER Activity Logger</h1>
+    <div class="profile">
+      <div class="field">
+        <label for="member">Team Member</label>
+        <select id="member"></select>
+      </div>
+      <div class="field">
+        <label>Team Name</label>
+        <span id="teamName"></span>
+      </div>
+      <div class="field">
+        <label>CWID</label>
+        <span id="cwid"></span>
+      </div>
+    </div>
+    <form id="activityForm">
+      <div class="field">
+        <label for="activity">Activity</label>
+        <select id="activity" required>
+          <option value="">Select activity</option>
+          <option>Cardio</option>
+          <option>Weights</option>
+          <option>Sports</option>
+          <option>Yoga</option>
+          <option>Dance</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="duration">Duration (minutes)</label>
+        <div class="quick-buttons" id="quickBtns">
+          <!-- Quick buttons will be injected here -->
+        </div>
+        <input type="number" id="duration" min="1" max="500" required>
+      </div>
+      <button type="submit" class="button">Open Pre-filled Form</button>
+    </form>
+    <div class="leaderboard" id="leaderboard">
+      <h2>Leaderboard (Total Minutes)</h2>
+      <ol class="leaderboard-list" id="leaderboardList"></ol>
+    </div>
+    <div class="recent" id="recent">
+      <h2>Recent logs</h2>
+      <ul class="recent-log" id="recentLog"></ul>
+    </div>
+    <div class="credit">
+      <span>Powered by <a href="https://github.com/pushpullleg/fitober-logger" target="_blank">FITOBER Logger</a></span>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html>
