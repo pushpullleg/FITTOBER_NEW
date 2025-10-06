@@ -84,9 +84,6 @@ members.forEach((m, i) => {
 // Default to first member
 memberSelect.value = 0;
 
-// Initialize duration display
-updateDurationDisplay(30);
-
 // Quick add buttons
 const quickDurations = [15, 30, 45, 60, 75, 90];
 const quickBtnsDiv = document.getElementById('quickBtns');
@@ -118,14 +115,22 @@ function updateDurationDisplay(value) {
   });
 }
 
-// Counter button event listeners
-document.getElementById('incrementBtn').addEventListener('click', () => {
-  updateDurationDisplay(currentDuration + 15);
-});
+// Initialize counter functionality after DOM is ready
+function initializeCounters() {
+  // Counter button event listeners
+  const incrementBtn = document.getElementById('incrementBtn');
+  const decrementBtn = document.getElementById('decrementBtn');
+  
+  if (incrementBtn && decrementBtn) {
+    incrementBtn.addEventListener('click', () => {
+      updateDurationDisplay(currentDuration + 15);
+    });
 
-document.getElementById('decrementBtn').addEventListener('click', () => {
-  updateDurationDisplay(currentDuration - 15);
-});
+    decrementBtn.addEventListener('click', () => {
+      updateDurationDisplay(currentDuration - 15);
+    });
+  }
+}
 
 document.getElementById('activityForm').onsubmit = function(e) {
   e.preventDefault();
@@ -151,3 +156,7 @@ document.getElementById('activityForm').onsubmit = function(e) {
 
 renderRecentLogs();
 updateTotalTime();
+
+// Initialize duration display and counters after everything is set up
+updateDurationDisplay(30);
+initializeCounters();
