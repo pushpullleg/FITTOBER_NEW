@@ -28,6 +28,74 @@ function setupGitHubToken() {
   return false;
 }
 
+// Team setup function - for sharing the same gist
+function setupTeamGist() {
+  const gistId = prompt('👥 Enter the Team Gist ID (ask team admin):\n\nIf you are the first team member, leave this blank to create a new gist.');
+  if (gistId && gistId.trim()) {
+    localStorage.setItem('gistId', gistId.trim());
+    CLOUD_CONFIG.gistId = gistId.trim();
+    console.log('✅ Team Gist ID saved:', gistId.trim());
+    return true;
+  }
+  return false;
+}
+
+// Manual team setup function - can be called from console
+function joinTeam(gistId) {
+  if (!gistId || !gistId.trim()) {
+    console.error('❌ Please provide a Gist ID: joinTeam("your-gist-id-here")');
+    return false;
+  }
+  
+  localStorage.setItem('gistId', gistId.trim());
+  CLOUD_CONFIG.gistId = gistId.trim();
+  console.log('✅ Joined team! Gist ID saved:', gistId.trim());
+  console.log('🔄 Refreshing data from team cloud...');
+  
+  // Refresh the UI to show team data
+  refreshUIFromCloud();
+  
+  // Update UI to hide join button
+  updateTeamSetupUI();
+  
+  alert('🎉 Successfully joined team!\n\nYour activities will now sync with the team cloud.');
+  return true;
+}
+
+// Helper function to check current setup
+function checkSetup() {
+  console.log('🔍 Current Setup Status:');
+  console.log('Token exists:', !!CLOUD_CONFIG.githubToken);
+  console.log('Gist ID:', CLOUD_CONFIG.gistId || 'Not set');
+  console.log('Cloud enabled:', CLOUD_CONFIG.enabled);
+  
+  if (!CLOUD_CONFIG.gistId) {
+    console.log('💡 To join team: Get Gist ID from team admin, then run: joinTeam("gist-id-here")');
+  }
+}
+
+// Show team setup button if needed
+function updateTeamSetupUI() {
+  const teamSetupDiv = document.getElementById('teamSetup');
+  const joinBtn = document.getElementById('joinTeamBtn');
+  
+  if (!teamSetupDiv || !joinBtn) return;
+  
+  // Show join button if user has token but no gist ID
+  if (CLOUD_CONFIG.githubToken && !CLOUD_CONFIG.gistId) {
+    teamSetupDiv.style.display = 'block';
+    joinBtn.onclick = () => {
+      const gistId = prompt('👥 Enter Team Gist ID:\n\nAsk your team admin for the Gist ID to join the same tracking system.');
+      if (gistId && gistId.trim()) {
+        joinTeam(gistId.trim());
+        teamSetupDiv.style.display = 'none'; // Hide button after joining
+      }
+    };
+  } else {
+    teamSetupDiv.style.display = 'none';
+  }
+}
+
 // Google Form field entry IDs
 const entryIDs = {
   team: 'entry.500000070',
@@ -46,11 +114,36 @@ function getSelectedMember() {
 
 // Cloud sync functions
 async function initializeCloudSync() {
-  // For cloud-only approach, we'll create gist if not exists
-  // You can manually set CLOUD_CONFIG.gistId if you have an existing gist
+  // Check if we have a token first
+  if (!CLOUD_CONFIG.githubToken) {
+    console.log('🔐 No GitHub token found, requesting setup...');
+    if (!setupGitHubToken()) {
+      console.error('❌ GitHub token setup failed');
+      return;
+    }
+  }
+  
+  // Check if we have a gist ID
   if (!CLOUD_CONFIG.gistId) {
+    console.log('👥 No Gist ID found...');
+    
+    // Ask if user wants to join existing team gist or create new one
+    const joinExisting = confirm('👥 Do you want to join an existing team gist?\n\nClick OK to enter team Gist ID\nClick Cancel to create a new gist');
+    
+    if (joinExisting) {
+      if (setupTeamGist()) {
+        console.log('📡 Using team GitHub gist:', CLOUD_CONFIG.gistId);
+        return;
+      }
+    }
+    
+    // Create new gist if no existing one or setup failed
     console.log('🌟 Creating new GitHub gist for team...');
-    await createCloudGist();
+    const newGistId = await createCloudGist();
+    if (newGistId) {
+      console.log('🎉 New team gist created! Share this ID with your team:', newGistId);
+      alert(`🎉 Team Gist Created!\n\nGist ID: ${newGistId}\n\nShare this ID with your team members so they can join the same tracking system.`);
+    }
   } else {
     console.log('📡 Using configured GitHub gist:', CLOUD_CONFIG.gistId);
   }
@@ -204,10 +297,26 @@ function buildPrefillURL(profile, activity, duration) {
 }
 
 async function saveActivityToCloud(logData) {
-  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.gistId) {
-    console.error('❌ Cloud not initialized');
+  if (!CLOUD_CONFIG.enabled) {
+    console.error('❌ Cloud sync disabled');
     return false;
   }
+  
+  if (!CLOUD_CONFIG.githubToken) {
+    console.error('❌ GitHub token not found');
+    return false;
+  }
+  
+  if (!CLOUD_CONFIG.gistId) {
+    console.error('❌ Gist ID not found - trying to initialize...');
+    await initializeCloudSync();
+    if (!CLOUD_CONFIG.gistId) {
+      console.error('❌ Failed to initialize cloud sync');
+      return false;
+    }
+  }
+  
+  console.log('🔄 Saving activity to cloud...', { gistId: CLOUD_CONFIG.gistId, member: logData.member });
   
   try {
     // Get current cloud data
@@ -239,13 +348,18 @@ async function saveActivityToCloud(logData) {
     });
     
     if (response.ok) {
-      console.log('✅ Activity saved to GitHub Gist');
+      console.log('✅ Activity saved to GitHub Gist successfully');
       // Refresh UI with latest cloud data
       await refreshUIFromCloud();
       return true;
     } else {
       const error = await response.json();
-      console.error('❌ Failed to save to gist:', error.message);
+      console.error('❌ Failed to save to gist:', response.status, error.message);
+      console.error('📊 Request details:', { 
+        gistId: CLOUD_CONFIG.gistId, 
+        tokenExists: !!CLOUD_CONFIG.githubToken,
+        tokenLength: CLOUD_CONFIG.githubToken?.length 
+      });
       return false;
     }
   } catch (error) {
@@ -431,21 +545,28 @@ document.getElementById('activityForm').onsubmit = async function(e) {
   submitBtn.textContent = 'Saving...';
   submitBtn.disabled = true;
   
-  // Save to cloud only
-  const saved = await saveActivityToCloud(logData);
+  // Always open the Google Form first (primary goal)
+  const url = buildPrefillURL(profile, activity, duration);
+  window.open(url, '_blank');
+  
+  // Try to save to cloud (secondary - don't block form if this fails)
+  try {
+    console.log('🔄 Attempting to save activity to cloud...', { member: profile.name, activity, duration });
+    const saved = await saveActivityToCloud(logData);
+    if (saved) {
+      console.log('✅ Activity successfully logged to team cloud!');
+    } else {
+      console.warn('⚠️ Failed to save to cloud, but Google Form opened successfully');
+      console.log('💡 Check browser console for detailed error information');
+    }
+  } catch (error) {
+    console.warn('⚠️ Cloud save error:', error.message);
+    console.log('💡 Google Form still opened successfully - main goal achieved');
+  }
   
   // Reset button state  
   submitBtn.textContent = originalText;
   submitBtn.disabled = false;
-  
-  if (!saved) {
-    alert('Failed to save activity. Please try again.');
-    return;
-  }
-
-  // Open pre-filled form
-  const url = buildPrefillURL(profile, activity, duration);
-  window.open(url, '_blank');
 };
 
 // Initialize cloud-only system
@@ -454,11 +575,15 @@ if (CLOUD_CONFIG.enabled) {
     console.log('🌟 Cloud initialized - Loading team data...');
     // Load initial UI from cloud
     refreshUIFromCloud();
+    // Update team setup UI
+    updateTeamSetupUI();
   }).catch(err => {
     console.error('❌ Cloud initialization failed:', err.message);
     // Show error state
     document.getElementById('recentLog').innerHTML = '<li>Failed to connect to team data</li>';
     document.getElementById('totalTimeList').innerHTML = '<li>Failed to load team totals</li>';
+    // Still show team setup UI in case user wants to join
+    updateTeamSetupUI();
   });
   
   // Periodic refresh every 1 minute for real-time updates
