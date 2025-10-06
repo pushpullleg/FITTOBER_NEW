@@ -10,7 +10,7 @@ const teamName = "The Excel-erators";
 const CLOUD_CONFIG = {
   enabled: true,
   apiUrl: 'https://api.jsonbin.io/v3/b',
-  apiKey: '$2a$10$D0odjQiz48b6flrTFWpdheuq2OiJTaX/qzQ1GohNTCW9wYR7f.qHm',
+  apiKey: '$2a$10$CKy6VJRTql5xChoILGDp9OM9IDA/9mM0blz52t3JN6BliM47fKhl2',
   binId: null, // Will be set after creating the bin
   teamName: teamName
 };
