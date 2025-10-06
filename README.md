@@ -1,207 +1,217 @@
-# FITOBER Activity Logger
+# FITTOBER Team Activity Tracker
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=000)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
-[![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
-[![CSS3](https://img.shields.io/badge/CSS3-1572B6?logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+A modern, mobile-first web application for tracking team fitness activities with real-time cloud synchronization and seamless Google Forms integration.
 
-⭐ If you like this project, star it on GitHub — it helps a lot!
-
-[Overview](#overview) • [Features](#features) • [Getting Started](#getting-started) • [Usage](#usage) • [Team](#team)
-
-A streamlined fitness activity tracking web application designed for teams participating in fitness challenges. Track workouts, compete with teammates, and automatically submit data to Google Forms with pre-filled information.
-
-![FITOBER Activity Logger](https://img.shields.io/badge/FITOBER-Activity%20Logger-brightgreen)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-GitHub%20Pages-brightgreen)](https://pushpullleg.github.io/FITTOBER_NEW/)
+[![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
+[![GitHub Gist](https://img.shields.io/badge/Storage-GitHub%20Gist-lightgrey)](https://gist.github.com/)
 
 ## Overview
 
-FITOBER Activity Logger is a client-side web application built for "The Excel-erators" team to efficiently log fitness activities during fitness challenges. The app provides a clean, modern interface for team members to quickly record their workouts and automatically opens pre-filled Google Forms for official submission.
+FITTOBER is a streamlined fitness tracking application designed for team-based fitness challenges. It combines an intuitive user interface with cloud synchronization to enable team members to log activities efficiently while maintaining real-time visibility of team progress.
 
-### Key Benefits
+### Key Features
 
-- **Fast Activity Logging**: Quick-add buttons for common workout durations
-- **Team Competition**: Real-time leaderboard showing total minutes per member  
-- **Activity History**: Local storage of recent workout logs
-- **Seamless Integration**: Automatic Google Forms pre-filling for official submissions
-- **Responsive Design**: Works perfectly on mobile and desktop devices
-- **No Backend Required**: Runs entirely in the browser with local data persistence
+- **Real-time Team Analytics** - Live synchronization of team member activities across all devices
+- **Mobile-Optimized Interface** - Touch-friendly design with quick-select buttons and counter controls
+- **Cloud Storage** - Secure data storage using GitHub Gist API with automatic backup
+- **Google Forms Integration** - Seamless pre-filled form submission for official record keeping
+- **Cross-Device Sync** - Access team data from any device with one-time token setup
+- **Activity Tracking** - Support for multiple activity types including cardio, strength training, yoga, and custom activities
 
-## Features
+## Architecture
 
-- **Member Selection**: Choose from team members with auto-populated profile information
-- **Activity Tracking**: Support for multiple fitness activities (Cardio, Weights, Sports, Yoga, Dance, etc.)
-- **Quick Duration Entry**: One-click buttons for common workout durations (15, 30, 45, 60, 75 minutes)
-- **Local Leaderboard**: Real-time ranking of team members by total workout minutes
-- **Recent Activity Log**: History of the last 7 logged activities
-- **Google Forms Integration**: Automatic pre-filling of team submission forms
-- **Responsive UI**: Modern dark theme with mobile-optimized design
-- **Local Data Persistence**: All data stored locally using browser localStorage
+The application follows a client-side architecture with cloud synchronization:
+
+```
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│   Web Interface │ ── │  GitHub Gist API │ ── │ Google Forms    │
+│   (HTML/CSS/JS) │    │  (Cloud Storage) │    │ (Data Export)   │
+└─────────────────┘    └──────────────────┘    └─────────────────┘
+```
+
+### Technology Stack
+
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Storage**: GitHub Gist API for cloud synchronization
+- **Authentication**: GitHub Personal Access Tokens
+- **Deployment**: GitHub Pages
+- **Integration**: Google Forms API for data submission
 
 ## Getting Started
 
 ### Prerequisites
 
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Internet connection (for Google Forms submission)
+- GitHub account
+- Modern web browser with JavaScript enabled
 
-### Installation
+### Setup
 
-1. **Clone the repository**:
+1. **Clone the repository**
    ```bash
    git clone https://github.com/pushpullleg/FITTOBER_NEW.git
    cd FITTOBER_NEW
    ```
 
-2. **Open the application**:
-   Simply open `index.html` in your web browser:
-   ```bash
-   # On macOS
-   open index.html
-   
-   # On Windows
-   start index.html
-   
-   # On Linux
-   xdg-open index.html
-   ```
+2. **Create GitHub Personal Access Token**
+   - Go to [GitHub Settings > Tokens](https://github.com/settings/tokens)
+   - Generate new token (classic) with `gist` scope
+   - Copy the token for later use
 
-3. **Start logging activities**:
-   The app is ready to use immediately - no installation or setup required!
+3. **Deploy to GitHub Pages**
+   - Enable GitHub Pages in repository settings
+   - Select source branch (main)
+   - Access your live application
 
-### Alternative: Direct Download
+### Configuration
 
-You can also download the files directly and run them locally:
-1. Download `index.html` and `app.js`
-2. Place them in the same folder
-3. Open `index.html` in your browser
+> [!IMPORTANT]
+> The application requires a GitHub Personal Access Token for cloud synchronization. This token will be requested on first use and stored securely in browser localStorage.
+
+When first accessing the application:
+1. Enter your GitHub Personal Access Token when prompted
+2. The app will create a private GitHub Gist for team data
+3. Token is saved locally - no re-entry needed on the same device
 
 ## Usage
 
-### Logging an Activity
+### Logging Activities
 
-1. **Select Team Member**: Choose your name from the dropdown menu
-2. **Choose Activity Type**: Select from the available fitness activities
-3. **Set Duration**: Either:
-   - Click a quick-add button (15, 30, 45, 60, 75 minutes)
-   - Manually enter duration in the input field
-4. **Submit**: Click "Open Pre-filled Form" to:
-   - Save the activity locally
-   - Open the official Google Form with your information pre-filled
+1. **Select Team Member** - Choose from the dropdown
+2. **Choose Activity Type** - Select from predefined options or enter custom activity
+3. **Set Duration** - Use quick buttons (15, 30, 45, 60, 90 min) or counter controls
+4. **Submit** - Click "Log Activity" to save and open pre-filled Google Form
 
-### Viewing Progress
+### Team Analytics
 
-- **Leaderboard**: See real-time rankings of all team members by total workout minutes
-- **Recent Logs**: View your last 7 activities with dates and details
-- **Team Profile**: Current team member information is displayed at the top
+- **Real-time Totals** - View cumulative minutes per team member
+- **Recent Activity Feed** - See latest activities from all team members
+- **Cross-device Sync** - Data updates automatically across all devices
 
-### Supported Activities
+### Mobile Experience
 
-- Cardio
-- Weights  
-- Sports
-- Yoga
-- Dance
-- Biking
-- Intentional Walking
-- Table Tennis
-- Pickleball
-- Cricket
+The interface is optimized for mobile devices with:
+- Touch-friendly controls
+- Quick-select duration buttons
+- Responsive grid layout
+- Optimized form inputs
 
-> [!TIP]
-> Use the quick-add buttons for faster logging of common workout durations!
+## API Integration
 
-## Team
+### GitHub Gist API
 
-**The Excel-erators** team members:
+The application uses GitHub Gist API for data persistence:
 
-| Name | CWID |
-|------|------|
-| Mukesh Ravichandran | 50380788 |
-| Trisha Harjono | 50386141 |  
-| Jaahnavi Garikipati | 50393610 |
-| Tejaswini Damodara Kannan | 50380778 |
-
-## Technical Details
-
-### Architecture
-
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3
-- **Storage**: Browser localStorage for activity history and leaderboard data
-- **Integration**: Google Forms API for official submissions
-- **Styling**: Custom CSS with modern dark theme and responsive design
-
-### Data Structure
-
-Activities are stored locally with the following structure:
 ```javascript
-{
-  date: "02 Oct 2025",      // Formatted date
-  member: "Member Name",    // Team member name
-  activity: "Cardio",      // Activity type
-  duration: "30"           // Duration in minutes
-}
+// Configuration
+const CLOUD_CONFIG = {
+  apiUrl: 'https://api.github.com/gists',
+  githubToken: localStorage.getItem('githubToken'),
+  gistId: localStorage.getItem('gistId'),
+  fileName: 'fittober_team_data.json'
+};
 ```
 
-### Browser Compatibility
+### Google Forms Integration
 
-- Chrome 80+
-- Firefox 75+
-- Safari 13+
-- Edge 80+
+Activities are automatically submitted to Google Forms with pre-filled data:
+- Team name and member information
+- Activity type and duration
+- Timestamp and unique identifiers
 
-## Customization
+## Team Configuration
 
-To customize the app for your team:
+To customize for your team, update the following in `app.js`:
 
-1. **Update team information** in `app.js`:
-   ```javascript
-   const members = [
-     { name: 'Your Name', cwid: 'Your CWID' },
-     // Add more members...
-   ];
-   const teamName = "Your Team Name";
-   ```
+```javascript
+const members = [
+  { name: 'Team Member 1', cwid: 'ID1' },
+  { name: 'Team Member 2', cwid: 'ID2' },
+  // Add your team members
+];
 
-2. **Update Google Form integration** in `app.js`:
-   ```javascript
-   const entryIDs = {
-     team: 'entry.YOUR_TEAM_ID',
-     member: 'entry.YOUR_MEMBER_ID',
-     // Update with your form's entry IDs...
-   };
-   ```
+const teamName = "Your Team Name";
 
-3. **Modify activities** in `index.html`:
-   ```html
-   <option>Your Custom Activity</option>
-   ```
+// Update Google Form entry IDs
+const entryIDs = {
+  team: 'entry.xxxxxxxxx',
+  member: 'entry.xxxxxxxxx',
+  // Update with your form's entry IDs
+};
+```
 
-## Contributing
+## Security
 
-Contributions are welcome! This project is open to improvements and feature additions.
+- **Token Storage**: GitHub tokens stored in browser localStorage (device-specific)
+- **Private Gists**: Team data stored in private, encrypted GitHub Gists
+- **No Server Dependencies**: Client-side only, no server-side data storage
+- **Secure Authentication**: GitHub OAuth token-based authentication
 
-### Development Setup
+> [!WARNING]
+> Keep your GitHub Personal Access Token private. Only share with trusted team members for setup purposes.
 
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature-name`
-3. Make your changes
-4. Test thoroughly in multiple browsers
-5. Submit a pull request
+## Browser Support
 
-### Reporting Issues
+- Chrome/Chromium 60+
+- Firefox 55+
+- Safari 11+
+- Edge 79+
 
-If you encounter any bugs or have feature requests, please [open an issue](https://github.com/pushpullleg/FITTOBER_NEW/issues) with:
-- Browser and version
-- Steps to reproduce
-- Expected vs actual behavior
-- Screenshots if applicable
+## Troubleshooting
+
+### Common Issues
+
+**Token Authentication Fails**
+- Verify token has `gist` scope enabled
+- Check token hasn't expired
+- Ensure token starts with `ghp_`
+
+**Data Not Syncing**
+- Check internet connection
+- Verify GitHub Gist permissions
+- Clear browser cache and re-enter token
+
+**Mobile Display Issues**
+- Ensure viewport meta tag is present
+- Check CSS media queries
+- Test in device developer tools
+
+## Development
+
+### Local Development
+
+```bash
+# Serve locally (requires Python)
+python -m http.server 8000
+
+# Or using Node.js
+npx serve .
+```
+
+### File Structure
+
+```
+├── index.html          # Main application interface
+├── app.js             # Core application logic
+├── images/
+│   └── bkg.jpg        # Background image
+├── GITHUB_SETUP.md    # Setup documentation
+└── README.md          # Project documentation
+```
+
+## Deployment
+
+The application is designed for static hosting and can be deployed to:
+
+- **GitHub Pages** (recommended)
+- Netlify
+- Vercel
+- Any static hosting service
+
+For GitHub Pages deployment, simply enable Pages in repository settings and select the main branch.
 
 ---
 
-<div align="center">
+**Live Demo**: [https://pushpullleg.github.io/FITTOBER_NEW/](https://pushpullleg.github.io/FITTOBER_NEW/)
 
-**Built with ❤️ for The Excel-erators team**
-
-For feedback or improvements, contact the [App Developer](https://github.com/pushpullleg)
-
-</div>
+For questions or support, contact [Mukesh Ravichandran](https://www.linkedin.com/in/mukesh-ravichandran/).
