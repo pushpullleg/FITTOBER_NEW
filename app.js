@@ -6,13 +6,14 @@ const members = [
 ];
 const teamName = "The Excel-erators";
 
-// Cloud sync configuration
+// Cloud sync configuration - GitHub Gist
 const CLOUD_CONFIG = {
   enabled: true,
-  apiUrl: 'https://api.jsonbin.io/v3/b',
-  masterKey: '$2a$10$CKy6VJRTql5xChoILGDp9OM9IDA/9mM0blz52t3JN6BliM47fKhl2', // Master Key from JSONBin.io
-  binId: null, // Will be set after creating the bin
-  teamName: teamName
+  apiUrl: 'https://api.github.com/gists',
+  githubToken: 'YOUR_GITHUB_TOKEN_HERE', // Replace with GitHub Personal Access Token
+  gistId: null, // Will be set after creating the gist
+  teamName: teamName,
+  fileName: 'fittober_team_data.json'
 };
 
 // Google Form field entry IDs
@@ -33,18 +34,21 @@ function getSelectedMember() {
 
 // Cloud sync functions
 async function initializeCloudSync() {
-  // For cloud-only approach, we'll create bin if not exists
-  // You can manually set CLOUD_CONFIG.binId if you have an existing bin
-  if (!CLOUD_CONFIG.binId) {
-    console.log('🌟 Creating new cloud bin for team...');
-    await createCloudBin();
+  // For cloud-only approach, we'll create gist if not exists
+  // You can manually set CLOUD_CONFIG.gistId if you have an existing gist
+  if (!CLOUD_CONFIG.gistId) {
+    console.log('🌟 Creating new GitHub gist for team...');
+    await createCloudGist();
   } else {
-    console.log('📡 Using configured cloud bin:', CLOUD_CONFIG.binId);
+    console.log('📡 Using configured GitHub gist:', CLOUD_CONFIG.gistId);
   }
 }
 
-async function createCloudBin() {
-  if (!CLOUD_CONFIG.enabled) return null;
+async function createCloudGist() {
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.githubToken || CLOUD_CONFIG.githubToken === 'YOUR_GITHUB_TOKEN_HERE') {
+    console.warn('⚠️ GitHub token not configured');
+    return null;
+  }
   
   try {
     const initialData = {
@@ -55,31 +59,45 @@ async function createCloudBin() {
       members: members.map(m => m.name)
     };
     
+    const gistData = {
+      description: `FITTOBER Team Tracker - ${CLOUD_CONFIG.teamName}`,
+      public: false, // Private gist
+      files: {
+        [CLOUD_CONFIG.fileName]: {
+          content: JSON.stringify(initialData, null, 2)
+        }
+      }
+    };
+    
     const response = await fetch(CLOUD_CONFIG.apiUrl, {
       method: 'POST',
       headers: {
+        'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_CONFIG.masterKey
+        'Accept': 'application/vnd.github.v3+json'
       },
-      body: JSON.stringify(initialData)
+      body: JSON.stringify(gistData)
     });
     
     if (response.ok) {
       const result = await response.json();
-      const binId = result.metadata.id;
-      CLOUD_CONFIG.binId = binId;
-      console.log('✅ Cloud bin created:', binId);
-      console.log('💡 Save this Bin ID for future use:', binId);
-      return binId;
+      const gistId = result.id;
+      CLOUD_CONFIG.gistId = gistId;
+      console.log('✅ GitHub Gist created:', gistId);
+      console.log('💡 Gist URL:', result.html_url);
+      return gistId;
+    } else {
+      const error = await response.json();
+      console.error('❌ Failed to create gist:', error.message);
     }
   } catch (error) {
-    console.warn('⚠️ Failed to create cloud bin:', error.message);
+    console.warn('⚠️ Failed to create GitHub gist:', error.message);
   }
   return null;
 }
 
 async function syncToCloud(newLogData) {
-  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.binId) return false;
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.gistId) return false;
   
   try {
     // Get current cloud data
@@ -91,14 +109,23 @@ async function syncToCloud(newLogData) {
     cloudData.lastUpdated = new Date().toISOString();
     cloudData.version = (cloudData.version || 0) + 1;
     
-    // Save back to cloud
-    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}`, {
-      method: 'PUT',
+    // Save back to GitHub Gist
+    const gistData = {
+      files: {
+        [CLOUD_CONFIG.fileName]: {
+          content: JSON.stringify(cloudData, null, 2)
+        }
+      }
+    };
+    
+    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.gistId}`, {
+      method: 'PATCH',
       headers: {
+        'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_CONFIG.masterKey
+        'Accept': 'application/vnd.github.v3+json'
       },
-      body: JSON.stringify(cloudData)
+      body: JSON.stringify(gistData)
     });
     
     if (response.ok) {
@@ -112,18 +139,22 @@ async function syncToCloud(newLogData) {
 }
 
 async function getCloudData() {
-  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.binId) return { logs: [] };
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.gistId) return { logs: [] };
   
   try {
-    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}/latest`, {
+    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.gistId}`, {
       headers: {
-        'X-Master-Key': CLOUD_CONFIG.masterKey
+        'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
+        'Accept': 'application/vnd.github.v3+json'
       }
     });
     
     if (response.ok) {
       const result = await response.json();
-      return result.record || { logs: [] };
+      const fileContent = result.files[CLOUD_CONFIG.fileName]?.content;
+      if (fileContent) {
+        return JSON.parse(fileContent);
+      }
     }
   } catch (error) {
     console.warn('⚠️ Failed to get cloud data:', error.message);
@@ -156,7 +187,7 @@ function buildPrefillURL(profile, activity, duration) {
 }
 
 async function saveActivityToCloud(logData) {
-  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.binId) {
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.gistId) {
     console.error('❌ Cloud not initialized');
     return false;
   }
@@ -171,23 +202,33 @@ async function saveActivityToCloud(logData) {
     cloudData.lastUpdated = new Date().toISOString();
     cloudData.version = (cloudData.version || 0) + 1;
     
-    // Save back to cloud
-    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}`, {
-      method: 'PUT',
+    // Save back to GitHub Gist
+    const gistData = {
+      files: {
+        [CLOUD_CONFIG.fileName]: {
+          content: JSON.stringify(cloudData, null, 2)
+        }
+      }
+    };
+    
+    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.gistId}`, {
+      method: 'PATCH',
       headers: {
+        'Authorization': `token ${CLOUD_CONFIG.githubToken}`,
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_CONFIG.masterKey
+        'Accept': 'application/vnd.github.v3+json'
       },
-      body: JSON.stringify(cloudData)
+      body: JSON.stringify(gistData)
     });
     
     if (response.ok) {
-      console.log('✅ Activity saved to cloud');
+      console.log('✅ Activity saved to GitHub Gist');
       // Refresh UI with latest cloud data
       await refreshUIFromCloud();
       return true;
     } else {
-      console.error('❌ Failed to save to cloud:', response.status);
+      const error = await response.json();
+      console.error('❌ Failed to save to gist:', error.message);
       return false;
     }
   } catch (error) {
