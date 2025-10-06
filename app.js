@@ -105,7 +105,7 @@ quickDurations.forEach(val => {
 let currentDuration = 30;
 
 function updateDurationDisplay(value) {
-  currentDuration = Math.max(5, Math.min(300, value));
+  currentDuration = Math.max(15, Math.min(600, value));
   document.getElementById('durationDisplay').textContent = currentDuration;
   document.getElementById('duration').value = currentDuration;
   
@@ -120,11 +120,11 @@ function updateDurationDisplay(value) {
 
 // Counter button event listeners
 document.getElementById('incrementBtn').addEventListener('click', () => {
-  updateDurationDisplay(currentDuration + 5);
+  updateDurationDisplay(currentDuration + 15);
 });
 
 document.getElementById('decrementBtn').addEventListener('click', () => {
-  updateDurationDisplay(currentDuration - 5);
+  updateDurationDisplay(currentDuration - 15);
 });
 
 document.getElementById('activityForm').onsubmit = function(e) {
