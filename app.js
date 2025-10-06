@@ -136,8 +136,19 @@ document.getElementById('activityForm').onsubmit = function(e) {
   e.preventDefault();
   const idx = memberSelect.value;
   const profile = members[idx];
-  const activity = document.getElementById('activity').value;
+  let activity = document.getElementById('activity').value;
   const duration = currentDuration;
+  
+  // Handle custom activity
+  if (activity === 'Other') {
+    const customActivity = document.getElementById('customActivity').value.trim();
+    if (!customActivity) {
+      alert('Please enter your custom activity');
+      return;
+    }
+    activity = customActivity;
+  }
+  
   if (!activity || !duration) return;
 
   // Log locally
@@ -160,3 +171,19 @@ updateTotalTime();
 // Initialize duration display and counters after everything is set up
 updateDurationDisplay(30);
 initializeCounters();
+
+// Handle "Other" activity selection
+document.getElementById('activity').addEventListener('change', function() {
+  const customField = document.getElementById('customActivityField');
+  const customInput = document.getElementById('customActivity');
+  
+  if (this.value === 'Other') {
+    customField.style.display = 'block';
+    customInput.required = true;
+    customInput.focus();
+  } else {
+    customField.style.display = 'none';
+    customInput.required = false;
+    customInput.value = '';
+  }
+});
