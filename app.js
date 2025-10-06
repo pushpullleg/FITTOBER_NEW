@@ -6,6 +6,15 @@ const members = [
 ];
 const teamName = "The Excel-erators";
 
+// Cloud sync configuration
+const CLOUD_CONFIG = {
+  enabled: true,
+  apiUrl: 'https://api.jsonbin.io/v3/b',
+  apiKey: '$2a$10$D0odjQiz48b6flrTFWpdheuq2OiJTaX/qzQ1GohNTCW9wYR7f.qHm',
+  binId: null, // Will be set after creating the bin
+  teamName: teamName
+};
+
 // Google Form field entry IDs
 const entryIDs = {
   team: 'entry.500000070',
@@ -22,6 +31,120 @@ function getSelectedMember() {
 
 // Profile update no longer needed since CWID/team name removed from display
 
+// Cloud sync functions
+async function initializeCloudSync() {
+  // For cloud-only approach, we'll create bin if not exists
+  // You can manually set CLOUD_CONFIG.binId if you have an existing bin
+  if (!CLOUD_CONFIG.binId) {
+    console.log('🌟 Creating new cloud bin for team...');
+    await createCloudBin();
+  } else {
+    console.log('📡 Using configured cloud bin:', CLOUD_CONFIG.binId);
+  }
+}
+
+async function createCloudBin() {
+  if (!CLOUD_CONFIG.enabled) return null;
+  
+  try {
+    const initialData = {
+      teamName: CLOUD_CONFIG.teamName,
+      logs: [],
+      created: new Date().toISOString(),
+      version: 1,
+      members: members.map(m => m.name)
+    };
+    
+    const response = await fetch(CLOUD_CONFIG.apiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': CLOUD_CONFIG.apiKey
+      },
+      body: JSON.stringify(initialData)
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      const binId = result.metadata.id;
+      CLOUD_CONFIG.binId = binId;
+      console.log('✅ Cloud bin created:', binId);
+      console.log('💡 Save this Bin ID for future use:', binId);
+      return binId;
+    }
+  } catch (error) {
+    console.warn('⚠️ Failed to create cloud bin:', error.message);
+  }
+  return null;
+}
+
+async function syncToCloud(newLogData) {
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.binId) return false;
+  
+  try {
+    // Get current cloud data
+    const cloudData = await getCloudData();
+    
+    // Add new log
+    cloudData.logs = cloudData.logs || [];
+    cloudData.logs.unshift(newLogData);
+    cloudData.lastUpdated = new Date().toISOString();
+    cloudData.version = (cloudData.version || 0) + 1;
+    
+    // Save back to cloud
+    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': CLOUD_CONFIG.apiKey
+      },
+      body: JSON.stringify(cloudData)
+    });
+    
+    if (response.ok) {
+      console.log('✅ Synced to cloud successfully');
+      return true;
+    }
+  } catch (error) {
+    console.warn('⚠️ Cloud sync failed:', error.message);
+  }
+  return false;
+}
+
+async function getCloudData() {
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.binId) return { logs: [] };
+  
+  try {
+    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}/latest`, {
+      headers: {
+        'X-Master-Key': CLOUD_CONFIG.apiKey
+      }
+    });
+    
+    if (response.ok) {
+      const result = await response.json();
+      return result.record || { logs: [] };
+    }
+  } catch (error) {
+    console.warn('⚠️ Failed to get cloud data:', error.message);
+  }
+  return { logs: [] };
+}
+
+async function refreshUIFromCloud() {
+  console.log('🔄 Refreshing UI from cloud...');
+  try {
+    // Update both UI sections from cloud
+    await Promise.all([
+      renderRecentLogs(),
+      updateTotalTime()
+    ]);
+    console.log('✅ UI refreshed from cloud');
+  } catch (error) {
+    console.error('❌ Failed to refresh UI:', error.message);
+  }
+}
+
 function buildPrefillURL(profile, activity, duration) {
   const params = new URLSearchParams();
   params.append(entryIDs.team, teamName);
@@ -32,45 +155,117 @@ function buildPrefillURL(profile, activity, duration) {
   return `https://docs.google.com/forms/d/e/1FAIpQLSfhLBkLnU8xGQouW4lr_ALblEuij9aCkgYad5F87T06XBJUvg/viewform?pli=1&${params.toString()}`;
 }
 
-function saveRecentLog(log) {
-  let logs = JSON.parse(localStorage.getItem('fitober_logs') || '[]');
-  logs.unshift(log);
-  logs = logs.slice(0, 10);
-  localStorage.setItem('fitober_logs', JSON.stringify(logs));
-  renderRecentLogs();
-  updateTotalTime();
-}
-
-function renderRecentLogs() {
-  const logs = JSON.parse(localStorage.getItem('fitober_logs') || '[]');
-  const ul = document.getElementById('recentLog');
-  ul.innerHTML = '';
-  logs.forEach(l => {
-    const li = document.createElement('li');
-    li.textContent = `${l.date} | ${l.member} | ${l.activity} (${l.duration} min)`;
-    ul.appendChild(li);
-  });
-}
-
-function updateTotalTime() {
-  const logs = JSON.parse(localStorage.getItem('fitober_logs') || '[]');
-  const totals = {};
-  members.forEach(m => { totals[m.name] = 0; });
-  logs.forEach(l => {
-    if (totals[l.member] !== undefined) {
-      totals[l.member] += parseInt(l.duration) || 0;
+async function saveActivityToCloud(logData) {
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.binId) {
+    console.error('❌ Cloud not initialized');
+    return false;
+  }
+  
+  try {
+    // Get current cloud data
+    const cloudData = await getCloudData();
+    
+    // Add new log to cloud
+    cloudData.logs = cloudData.logs || [];
+    cloudData.logs.unshift(logData);
+    cloudData.lastUpdated = new Date().toISOString();
+    cloudData.version = (cloudData.version || 0) + 1;
+    
+    // Save back to cloud
+    const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': CLOUD_CONFIG.apiKey
+      },
+      body: JSON.stringify(cloudData)
+    });
+    
+    if (response.ok) {
+      console.log('✅ Activity saved to cloud');
+      // Refresh UI with latest cloud data
+      await refreshUIFromCloud();
+      return true;
+    } else {
+      console.error('❌ Failed to save to cloud:', response.status);
+      return false;
     }
-  });
-  const filtered = Object.entries(totals)
-    .filter(([name, min]) => min > 0)
-    .sort((a, b) => b[1] - a[1]);
+  } catch (error) {
+    console.error('❌ Cloud save error:', error.message);
+    return false;
+  }
+}
+
+async function renderRecentLogs() {
+  const ul = document.getElementById('recentLog');
+  ul.innerHTML = '<li>Loading recent activities...</li>';
+  
+  try {
+    const cloudData = await getCloudData();
+    const logs = cloudData.logs || [];
+    
+    ul.innerHTML = '';
+    
+    // Show last 10 logs
+    const recentLogs = logs.slice(0, 10);
+    
+    if (recentLogs.length === 0) {
+      ul.innerHTML = '<li>No activities logged yet</li>';
+      return;
+    }
+    
+    recentLogs.forEach(l => {
+      const li = document.createElement('li');
+      li.textContent = `${l.date} | ${l.member} | ${l.activity} (${l.duration} min)`;
+      ul.appendChild(li);
+    });
+    
+  } catch (error) {
+    ul.innerHTML = '<li>Error loading activities</li>';
+    console.error('Failed to load recent logs:', error);
+  }
+}
+
+async function updateTotalTime() {
   const ul = document.getElementById('totalTimeList');
-  ul.innerHTML = '';
-  filtered.forEach(([name, min]) => {
-    const li = document.createElement('li');
-    li.textContent = `${name}: ${min} min`;
-    ul.appendChild(li);
-  });
+  ul.innerHTML = '<li>Calculating totals...</li>';
+  
+  try {
+    const cloudData = await getCloudData();
+    const logs = cloudData.logs || [];
+    
+    // Calculate totals from ALL cloud history
+    const totals = {};
+    members.forEach(m => { totals[m.name] = 0; });
+    
+    logs.forEach(l => {
+      if (totals[l.member] !== undefined) {
+        totals[l.member] += parseInt(l.duration) || 0;
+      }
+    });
+    
+    // Filter and sort (hide zero totals)
+    const filtered = Object.entries(totals)
+      .filter(([name, min]) => min > 0)
+      .sort((a, b) => b[1] - a[1]);
+    
+    ul.innerHTML = '';
+    
+    if (filtered.length === 0) {
+      ul.innerHTML = '<li>No activities recorded yet</li>';
+      return;
+    }
+    
+    filtered.forEach(([name, min]) => {
+      const li = document.createElement('li');
+      li.textContent = `${name}: ${min} min`;
+      ul.appendChild(li);
+    });
+    
+  } catch (error) {
+    ul.innerHTML = '<li>Error calculating totals</li>';
+    console.error('Failed to calculate totals:', error);
+  }
 }
 
 // Populate member dropdown
@@ -132,7 +327,7 @@ function initializeCounters() {
   }
 }
 
-document.getElementById('activityForm').onsubmit = function(e) {
+document.getElementById('activityForm').onsubmit = async function(e) {
   e.preventDefault();
   const idx = memberSelect.value;
   const profile = members[idx];
@@ -151,22 +346,70 @@ document.getElementById('activityForm').onsubmit = function(e) {
   
   if (!activity || !duration) return;
 
-  // Log locally
-  const date = new Date().toLocaleDateString('en-GB', { year:'numeric', month:'short', day:'2-digit' });
-  saveRecentLog({
-    date,
+  // Create comprehensive log data for cloud
+  const now = new Date();
+  const logData = {
+    id: Date.now() + Math.random(), // Unique ID
+    timestamp: now.toISOString(), // Full ISO timestamp
+    date: now.toLocaleDateString('en-GB', { year:'numeric', month:'short', day:'2-digit' }),
+    time: now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
     member: profile.name,
+    memberIndex: idx,
+    cwid: profile.cwid,
     activity,
-    duration
-  });
+    duration: parseInt(duration),
+    teamName,
+    formUrl: buildPrefillURL(profile, activity, duration),
+    sessionInfo: {
+      userAgent: navigator.userAgent.split(' ').pop(),
+      platform: navigator.platform,
+      language: navigator.language
+    }
+  };
+  
+  // Show loading state
+  const submitBtn = document.querySelector('.button');
+  const originalText = submitBtn.textContent;
+  submitBtn.textContent = 'Saving...';
+  submitBtn.disabled = true;
+  
+  // Save to cloud only
+  const saved = await saveActivityToCloud(logData);
+  
+  // Reset button state  
+  submitBtn.textContent = originalText;
+  submitBtn.disabled = false;
+  
+  if (!saved) {
+    alert('Failed to save activity. Please try again.');
+    return;
+  }
 
   // Open pre-filled form
   const url = buildPrefillURL(profile, activity, duration);
   window.open(url, '_blank');
 };
 
-renderRecentLogs();
-updateTotalTime();
+// Initialize cloud-only system
+if (CLOUD_CONFIG.enabled) {
+  initializeCloudSync().then(() => {
+    console.log('🌟 Cloud initialized - Loading team data...');
+    // Load initial UI from cloud
+    refreshUIFromCloud();
+  }).catch(err => {
+    console.error('❌ Cloud initialization failed:', err.message);
+    // Show error state
+    document.getElementById('recentLog').innerHTML = '<li>Failed to connect to team data</li>';
+    document.getElementById('totalTimeList').innerHTML = '<li>Failed to load team totals</li>';
+  });
+  
+  // Periodic refresh every 1 minute for real-time updates
+  setInterval(refreshUIFromCloud, 1 * 60 * 1000);
+} else {
+  // Fallback if cloud is disabled
+  document.getElementById('recentLog').innerHTML = '<li>Cloud sync disabled</li>';
+  document.getElementById('totalTimeList').innerHTML = '<li>Cloud sync disabled</li>';
+}
 
 // Initialize duration display and counters after everything is set up
 updateDurationDisplay(30);
