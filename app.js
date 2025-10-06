@@ -338,13 +338,13 @@ members.forEach((m, i) => {
 memberSelect.value = 0;
 
 // Quick add buttons
-const quickDurations = [15, 30, 45, 60, 75, 90];
+const quickDurations = [15, 30, 45, 60, 90];
 const quickBtnsDiv = document.getElementById('quickBtns');
 quickDurations.forEach(val => {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'quick-btn';
-  btn.textContent = `${val} min`;
+  btn.textContent = `${val}`;
   btn.onclick = () => {
     updateDurationDisplay(val);
   };

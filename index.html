@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UT        .field {
+            margin-bottom: 15px;
+        }">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FITOBER Activity Logger</title>
     <style>
@@ -28,8 +30,8 @@
             background: rgba(255,255,255,0.75);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
-            padding: 30px;
-            max-width: 500px;
+            padding: 20px;
+            max-width: 450px;
             width: 100%;
             /* reduced backdrop blur for better background visibility */
             -webkit-backdrop-filter: blur(2px);
@@ -39,8 +41,9 @@
         h1 {
             color: #00386C;
             text-align: center;
-            margin-bottom: 10px;
-            font-size: 28px;
+            margin-bottom: 20px;
+            font-size: 32px;
+            font-weight: 700;
         }
         
         .team-name {
@@ -310,12 +313,11 @@
 </head>
 <body>
     <div class="container">
-        <h1>FITTOBER 2025</h1>
-        <div class="team-name">The Excel-erators</div>
+        <h1>FITOBER</h1>
         
         <div class="profile">
             <div class="field">
-                <label for="member">Name</label>
+                <label for="member">Member</label>
                 <select id="member"></select>
             </div>
         </div>
@@ -324,22 +326,21 @@
             <div class="field">
                 <label for="activity">Activity</label>
                 <select id="activity" required>
-                    <option value="">-- Choose an activity --</option>
+                    <option value="">-- Activity --</option>
                     <option>Cardio</option>
-                    <option>Strength Training</option>
+                    <option>Strength</option>
                     <option>Biking</option>
                     <option>Dancing</option>
                     <option>Yoga</option>
-                    <option>Table Tennis</option>
-                    <option>Intentional Walking</option>
-                    <option value="Other">Others</option>
+                    <option>Walking</option>
+                    <option value="Other">Other</option>
                 </select>
                 <div id="customActivityField" class="custom-activity" style="display: none;">
                     <input type="text" id="customActivity" placeholder="Enter your activity..." maxlength="50">
                 </div>
             </div>
             <div class="field">
-                <label for="duration">Duration (minutes) *</label>
+                <label for="duration">Minutes</label>
                 <div class="quick-buttons" id="quickBtns">
                     <!-- Quick buttons will be injected here -->
                 </div>
@@ -350,22 +351,20 @@
                 </div>
                 <input type="hidden" id="duration" value="30">
             </div>
-            <button type="submit" class="button">Open Pre-filled Form</button>
+            <button type="submit" class="button">Log Activity</button>
         </form>
         
         <div class="total-time" id="totalTime">
-            <h2>Total Time</h2>
+            <h2>Totals</h2>
             <ul class="total-time-list" id="totalTimeList"></ul>
         </div>
         
         <div class="recent" id="recent">
-            <h2>Recent logs</h2>
+            <h2>Recent</h2>
             <ul class="recent-log" id="recentLog"></ul>
         </div>
         
-        <div class="credit">
-            For feedback or improvements, contact <a href="https://www.linkedin.com/in/mukesh-ravichandran/" target="_blank">Mukesh</a>
-        </div>
+
     </div>
     <script src="app.js"></script>
 </body>
