@@ -10,11 +10,23 @@ const teamName = "The Excel-erators";
 const CLOUD_CONFIG = {
   enabled: true,
   apiUrl: 'https://api.github.com/gists',
-  githubToken: 'YOUR_GITHUB_TOKEN_HERE', // Replace with GitHub Personal Access Token
-  gistId: null, // Will be set after creating the gist
+  githubToken: localStorage.getItem('githubToken'), // Stored securely in browser
+  gistId: localStorage.getItem('gistId') || null, // Will be set after creating the gist
   teamName: teamName,
   fileName: 'fittober_team_data.json'
 };
+
+// GitHub token setup function
+function setupGitHubToken() {
+  const token = prompt('🔐 Enter your GitHub Personal Access Token:\n\n1. Go to: https://github.com/settings/tokens\n2. Generate new token (classic) with "gist" scope\n3. Copy and paste token here:');
+  if (token && token.trim()) {
+    localStorage.setItem('githubToken', token.trim());
+    CLOUD_CONFIG.githubToken = token.trim();
+    console.log('✅ GitHub token saved securely in your browser');
+    return true;
+  }
+  return false;
+}
 
 // Google Form field entry IDs
 const entryIDs = {
@@ -45,8 +57,12 @@ async function initializeCloudSync() {
 }
 
 async function createCloudGist() {
-  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.githubToken || CLOUD_CONFIG.githubToken === 'YOUR_GITHUB_TOKEN_HERE') {
+  if (!CLOUD_CONFIG.enabled || !CLOUD_CONFIG.githubToken) {
     console.warn('⚠️ GitHub token not configured');
+    if (setupGitHubToken()) {
+      // Retry with new token
+      return await createCloudGist();
+    }
     return null;
   }
   
@@ -83,6 +99,7 @@ async function createCloudGist() {
       const result = await response.json();
       const gistId = result.id;
       CLOUD_CONFIG.gistId = gistId;
+      localStorage.setItem('gistId', gistId); // Save gist ID for future use
       console.log('✅ GitHub Gist created:', gistId);
       console.log('💡 Gist URL:', result.html_url);
       return gistId;
