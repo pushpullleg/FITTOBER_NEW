@@ -1,189 +1,297 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>FITOBER Activity Logger</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #111;
-      --card: #222;
-      --accent: #fff;
-      --gray: #ccc;
-      --btn-bg: #333;
-      --btn-hover: #fff;
-      --btn-color: #fff;
-      --btn-hover-color: #111;
-    }
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: var(--bg);
-      color: var(--accent);
-      min-height: 100vh;
-      margin: 0;
-      padding: 0;
-    }
-    .container {
-      background: var(--card);
-      max-width: 400px;
-      margin: 32px auto;
-      border-radius: 18px;
-      box-shadow: 0 4px 32px rgba(0,0,0,0.28);
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-    h1 {
-      font-size: 1.4em;
-      margin-bottom: 3px;
-      text-align: center;
-      letter-spacing: .04em;
-    }
-    .profile {
-      margin-bottom: 4px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    .field {
-      margin-bottom: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 3px;
-    }
-    label {
-      font-size: 0.99em;
-      margin-bottom: 2px;
-      color: var(--gray);
-    }
-    select,
-    input[type="number"] {
-      width: 100%;
-      padding: 7px;
-      background: #181818;
-      border-radius: 6px;
-      border: none;
-      color: var(--accent);
-      font-size: 1em;
-      margin-bottom: 2px;
-      outline: none;
-    }
-    .quick-buttons {
-      display: flex;
-      gap: 6px;
-      margin-bottom: 10px;
-      flex-wrap: wrap;
-    }
-    .quick-btn {
-      background: var(--btn-bg);
-      color: var(--btn-color);
-      border: none;
-      border-radius: 6px;
-      font-size: 1em;
-      padding: 8px 13px;
-      cursor: pointer;
-      transition: background .18s, color .18s;
-    }
-    .quick-btn:hover {
-      background: var(--btn-hover);
-      color: var(--btn-hover-color);
-      border: 1px solid #fff;
-    }
-    .button {
-      width: 100%;
-      background: var(--btn-bg);
-      color: var(--btn-color);
-      border: none;
-      padding: 13px;
-      border-radius: 8px;
-      font-size: 1.09em;
-      cursor: pointer;
-      margin-top: 6px;
-      transition: background .18s, color .18s;
-    }
-    .button:hover {
-      background: var(--btn-hover);
-      color: var(--btn-hover-color);
-      border: 1px solid #fff;
-    }
-    .recent, .leaderboard {
-      background: #181818;
-      padding: 10px;
-      border-radius: 8px;
-      font-size: 0.97em;
-      margin-bottom: 8px;
-    }
-    .recent h2, .leaderboard h2 { font-size: 1.05em; margin-top: 0; }
-    .recent-log, .leaderboard-list { margin: 0; padding-left: 18px;}
-    .credit { margin-top: 18px; text-align: center; font-size: 0.92em; opacity: 0.6;}
-    .credit a { color: #fff; text-decoration: underline; }
-    @media (max-width: 500px) {
-      .container {
-        max-width: 99vw;
-        margin: 3vw;
-        padding: 4vw;
-      }
-      .quick-btn { font-size: .97em; padding: 7px 7px;}
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FITOBER Activity Logger</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            /* Background image with a subtle gradient overlay for contrast */
+            background: linear-gradient(135deg, rgba(102,126,234,0.25) 0%, rgba(118,75,162,0.25) 100%),
+                        url('images/bkg.jpg') center/cover no-repeat fixed;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            /* Slightly translucent so the background image shows through but text remains readable */
+            background: rgba(255,255,255,0.92);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            /* smooth backdrop blur on supporting browsers */
+            -webkit-backdrop-filter: blur(6px);
+            backdrop-filter: blur(6px);
+        }
+        
+        h1 {
+            color: #00386C;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .team-name {
+            text-align: center;
+            color: #D34727;
+            font-size: 18px;
+            margin-bottom: 30px;
+            font-weight: 600;
+        }
+        
+        .profile {
+            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .field {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        select,
+        input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+            color: #333;
+        }
+        
+        select:focus,
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #1172DE;
+        }
+        
+        .profile-info {
+            background: #DCD7D2;
+            border-left: 4px solid #1172DE;
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: #00386C;
+        }
+        
+        .profile-info strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .quick-btn {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            transition: all 0.3s;
+        }
+        
+        .quick-btn:hover {
+            border-color: #1172DE;
+            background: #DCD7D2;
+        }
+        
+        .quick-btn.selected {
+            background: #FFC333;
+            color: #00386C;
+            border-color: #FFC333;
+            font-weight: 700;
+        }
+        
+        .button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #FFC333 0%, #FFD749 100%);
+            color: #00386C;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+        
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 195, 51, 0.4);
+        }
+        
+        .button:active {
+            transform: translateY(0);
+        }
+        
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .recent, .leaderboard {
+            background: rgba(220, 215, 210, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .recent h2, .leaderboard h2 { 
+            font-size: 16px; 
+            margin-top: 0; 
+            margin-bottom: 10px;
+            color: #00386C;
+        }
+        
+        .recent-log, .leaderboard-list { 
+            margin: 0; 
+            padding-left: 18px;
+            color: #333;
+        }
+        
+        .recent-log li, .leaderboard-list li {
+            margin-bottom: 5px;
+        }
+        
+        .credit {
+            text-align: center;
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 11px;
+            color: #999;
+        }
+        
+        .credit a {
+            color: #999;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .credit a:hover {
+            color: #1172DE;
+        }
+        
+        /* Mobile responsive tweaks */
+        @media (max-width: 480px) {
+            .container { 
+                padding: 20px; 
+                max-width: 420px; 
+            }
+            .quick-buttons { 
+                grid-template-columns: repeat(3, 1fr); 
+                gap: 8px; 
+            }
+            .quick-btn { 
+                padding: 14px; 
+                font-size: 16px; 
+            }
+        }
+
+        @media (max-width: 360px) {
+            .quick-buttons { 
+                grid-template-columns: repeat(2, 1fr); 
+            }
+            .button { 
+                font-size: 16px; 
+                padding: 12px; 
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <h1>FITOBER Activity Logger</h1>
-    <div class="profile">
-      <div class="field">
-        <label for="member">Team Member</label>
-        <select id="member"></select>
-      </div>
-      <div class="field">
-        <label>Team Name</label>
-        <span id="teamName"></span>
-      </div>
-      <div class="field">
-        <label>CWID</label>
-        <span id="cwid"></span>
-      </div>
-    </div>
-    <form id="activityForm">
-      <div class="field">
-        <label for="activity">Activity</label>
-        <select id="activity" required>
-          <option value="">Select activity</option>
-          <option>Cardio</option>
-          <option>Weights</option>
-          <option>Sports</option>
-          <option>Yoga</option>
-          <option>Dance</option>
-          <option>Biking</option>
-          <option>Intentional Walking</option>
-          <option>Table Tennis</option>
-          <option>Pickleball</option>
-          <option>Cricket</option>
-        </select>
-      </div>
-      <div class="field">
-        <label for="duration">Duration (minutes)</label>
-        <div class="quick-buttons" id="quickBtns">
-          <!-- Quick buttons will be injected here -->
+    <div class="container">
+        <h1>FITTOBER Activity Logger</h1>
+        <div class="team-name">The Excel-erators</div>
+        
+        <div class="profile">
+            <div class="field">
+                <label for="member">Team Member</label>
+                <select id="member"></select>
+            </div>
+            <div class="profile-info">
+                <strong>Team Name: <span id="teamName"></span></strong>
+                <strong>CWID: <span id="cwid"></span></strong>
+            </div>
         </div>
-        <input type="number" id="duration" min="1" max="500" required>
-      </div>
-      <button type="submit" class="button">Open Pre-filled Form</button>
-    </form>
-    <div class="leaderboard" id="leaderboard">
-      <h2>Leaderboard (Total Minutes)</h2>
-      <ol class="leaderboard-list" id="leaderboardList"></ol>
+        
+        <form id="activityForm">
+            <div class="field">
+                <label for="activity">Select Activity *</label>
+                <select id="activity" required>
+                    <option value="">-- Choose an activity --</option>
+                    <option>Cardio</option>
+                    <option>Weights</option>
+                    <option>Sports</option>
+                    <option>Yoga</option>
+                    <option>Dance</option>
+                    <option>Biking</option>
+                    <option>Intentional Walking</option>
+                    <option>Table Tennis</option>
+                    <option>Pickleball</option>
+                    <option>Cricket</option>
+                </select>
+            </div>
+            <div class="field">
+                <label for="duration">Duration (minutes) *</label>
+                <div class="quick-buttons" id="quickBtns">
+                    <!-- Quick buttons will be injected here -->
+                </div>
+                <input type="number" id="duration" min="1" max="500" required placeholder="Enter minutes">
+            </div>
+            <button type="submit" class="button">Open Pre-filled Form</button>
+        </form>
+        
+        <div class="leaderboard" id="leaderboard">
+            <h2>Leaderboard (Total Minutes)</h2>
+            <ol class="leaderboard-list" id="leaderboardList"></ol>
+        </div>
+        
+        <div class="recent" id="recent">
+            <h2>Recent logs</h2>
+            <ul class="recent-log" id="recentLog"></ul>
+        </div>
+        
+        <div class="credit">
+            For feedback or improvements, contact <a href="https://github.com/pushpullleg" target="_blank">App Developer</a>
+        </div>
     </div>
-    <div class="recent" id="recent">
-      <h2>Recent logs</h2>
-      <ul class="recent-log" id="recentLog"></ul>
-    </div>
-    <div class="credit">
-      <span>For feedback or improvements, contact  <a href="https://github.com/pushpullleg" target="_blank">App Developer</a></span>
-    </div>
-  </div>
-  <script src="app.js"></script>
+    <script src="app.js"></script>
 </body>
 </html>
