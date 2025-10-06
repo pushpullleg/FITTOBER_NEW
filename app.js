@@ -10,7 +10,7 @@ const teamName = "The Excel-erators";
 const CLOUD_CONFIG = {
   enabled: true,
   apiUrl: 'https://api.jsonbin.io/v3/b',
-  apiKey: '$2a$10$CKy6VJRTql5xChoILGDp9OM9IDA/9mM0blz52t3JN6BliM47fKhl2',
+  masterKey: '$2a$10$CKy6VJRTql5xChoILGDp9OM9IDA/9mM0blz52t3JN6BliM47fKhl2', // Master Key from JSONBin.io
   binId: null, // Will be set after creating the bin
   teamName: teamName
 };
@@ -59,7 +59,7 @@ async function createCloudBin() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_CONFIG.apiKey
+        'X-Master-Key': CLOUD_CONFIG.masterKey
       },
       body: JSON.stringify(initialData)
     });
@@ -96,7 +96,7 @@ async function syncToCloud(newLogData) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_CONFIG.apiKey
+        'X-Master-Key': CLOUD_CONFIG.masterKey
       },
       body: JSON.stringify(cloudData)
     });
@@ -117,7 +117,7 @@ async function getCloudData() {
   try {
     const response = await fetch(`${CLOUD_CONFIG.apiUrl}/${CLOUD_CONFIG.binId}/latest`, {
       headers: {
-        'X-Master-Key': CLOUD_CONFIG.apiKey
+        'X-Master-Key': CLOUD_CONFIG.masterKey
       }
     });
     
@@ -176,7 +176,7 @@ async function saveActivityToCloud(logData) {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
-        'X-Master-Key': CLOUD_CONFIG.apiKey
+        'X-Master-Key': CLOUD_CONFIG.masterKey
       },
       body: JSON.stringify(cloudData)
     });
