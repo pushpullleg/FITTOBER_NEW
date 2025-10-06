@@ -20,10 +20,7 @@ function getSelectedMember() {
   return members[idx];
 }
 
-function updateProfile(idx) {
-  document.getElementById('teamName').textContent = teamName;
-  document.getElementById('cwid').textContent = members[idx].cwid;
-}
+// Profile update no longer needed since CWID/team name removed from display
 
 function buildPrefillURL(profile, activity, duration) {
   const params = new URLSearchParams();
@@ -38,10 +35,10 @@ function buildPrefillURL(profile, activity, duration) {
 function saveRecentLog(log) {
   let logs = JSON.parse(localStorage.getItem('fitober_logs') || '[]');
   logs.unshift(log);
-  logs = logs.slice(0, 7);
+  logs = logs.slice(0, 10);
   localStorage.setItem('fitober_logs', JSON.stringify(logs));
   renderRecentLogs();
-  updateLeaderboard();
+  updateTotalTime();
 }
 
 function renderRecentLogs() {
@@ -55,7 +52,7 @@ function renderRecentLogs() {
   });
 }
 
-function updateLeaderboard() {
+function updateTotalTime() {
   const logs = JSON.parse(localStorage.getItem('fitober_logs') || '[]');
   const totals = {};
   members.forEach(m => { totals[m.name] = 0; });
@@ -64,14 +61,15 @@ function updateLeaderboard() {
       totals[l.member] += parseInt(l.duration) || 0;
     }
   });
-  const sorted = Object.entries(totals)
+  const filtered = Object.entries(totals)
+    .filter(([name, min]) => min > 0)
     .sort((a, b) => b[1] - a[1]);
-  const lb = document.getElementById('leaderboardList');
-  lb.innerHTML = '';
-  sorted.forEach(([name, min], idx) => {
+  const ul = document.getElementById('totalTimeList');
+  ul.innerHTML = '';
+  filtered.forEach(([name, min]) => {
     const li = document.createElement('li');
     li.textContent = `${name}: ${min} min`;
-    lb.appendChild(li);
+    ul.appendChild(li);
   });
 }
 
@@ -85,21 +83,48 @@ members.forEach((m, i) => {
 });
 // Default to first member
 memberSelect.value = 0;
-updateProfile(0);
-memberSelect.onchange = () => updateProfile(memberSelect.value);
+
+// Initialize duration display
+updateDurationDisplay(30);
 
 // Quick add buttons
-const quickDurations = [15, 30, 45, 60, 75];
+const quickDurations = [15, 30, 45, 60, 75, 90];
 const quickBtnsDiv = document.getElementById('quickBtns');
 quickDurations.forEach(val => {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'quick-btn';
-  btn.textContent = val;
+  btn.textContent = `${val} min`;
   btn.onclick = () => {
-    document.getElementById('duration').value = val;
+    updateDurationDisplay(val);
   };
   quickBtnsDiv.appendChild(btn);
+});
+
+// Counter functionality
+let currentDuration = 30;
+
+function updateDurationDisplay(value) {
+  currentDuration = Math.max(5, Math.min(300, value));
+  document.getElementById('durationDisplay').textContent = currentDuration;
+  document.getElementById('duration').value = currentDuration;
+  
+  // Update quick button selection
+  document.querySelectorAll('.quick-btn').forEach(btn => {
+    btn.classList.remove('selected');
+    if (btn.textContent === `${currentDuration} min`) {
+      btn.classList.add('selected');
+    }
+  });
+}
+
+// Counter button event listeners
+document.getElementById('incrementBtn').addEventListener('click', () => {
+  updateDurationDisplay(currentDuration + 5);
+});
+
+document.getElementById('decrementBtn').addEventListener('click', () => {
+  updateDurationDisplay(currentDuration - 5);
 });
 
 document.getElementById('activityForm').onsubmit = function(e) {
@@ -107,7 +132,7 @@ document.getElementById('activityForm').onsubmit = function(e) {
   const idx = memberSelect.value;
   const profile = members[idx];
   const activity = document.getElementById('activity').value;
-  const duration = document.getElementById('duration').value;
+  const duration = currentDuration;
   if (!activity || !duration) return;
 
   // Log locally
@@ -125,4 +150,4 @@ document.getElementById('activityForm').onsubmit = function(e) {
 };
 
 renderRecentLogs();
-updateLeaderboard();
+updateTotalTime();
